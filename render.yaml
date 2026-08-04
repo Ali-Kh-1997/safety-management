@@ -1,0 +1,42 @@
+services:
+  # ===== بک‌اند (Django) =====
+  - type: web
+    name: safety-backend
+    runtime: python
+    plan: free
+    buildCommand: |
+      pip install -r requirements.txt
+      python manage.py collectstatic --noinput
+    startCommand: gunicorn config.wsgi:application
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings
+      - key: DEBUG
+        value: "False"
+      - key: PYTHON_VERSION
+        value: 3.11.0
+      - key: DATABASE_URL
+        fromDatabase:
+          name: safety-db
+          property: connectionString
+
+  # ===== فرانت‌اند (React) =====
+  - type: web
+    name: safety-frontend
+    runtime: static
+    plan: free
+    buildCommand: |
+      cd frontend
+      npm install
+      npm run build
+    staticPublishPath: ./frontend/build
+    envVars:
+      - key: REACT_APP_API_URL
+        value: https://safety-backend.onrender.com
+
+  # ===== دیتابیس (PostgreSQL) =====
+  - type: postgresql
+    name: safety-db
+    plan: free
+    databaseName: safety_db
+    user: safety_user
