@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 services:
   - type: web
     name: safety-backend
@@ -26,4 +27,34 @@ services:
     staticPublishPath: ./frontend/build
     envVars:
       - key: REACT_APP_API_URL
+=======
+services:
+  - type: web
+    name: safety-backend
+    runtime: python
+    plan: starter
+    buildCommand: |
+      pip install -r requirements.txt
+      python manage.py collectstatic --noinput
+    startCommand: gunicorn config.wsgi:application
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: config.settings
+      - key: DEBUG
+        value: "False"
+      - key: PYTHON_VERSION
+        value: 3.11.0
+
+  - type: web
+    name: safety-frontend
+    runtime: static
+    plan: starter
+    buildCommand: |
+      cd frontend
+      npm install
+      npm run build
+    staticPublishPath: ./frontend/build
+    envVars:
+      - key: REACT_APP_API_URL
+>>>>>>> 4835404c720553a42bb27b2ae142cb32832c5997
         value: https://safety-backend.onrender.com
