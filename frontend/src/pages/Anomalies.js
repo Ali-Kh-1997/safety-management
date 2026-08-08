@@ -19,7 +19,7 @@ function Anomalies() {
     }, []);
 
     const fetchAnomalies = () => {
-        fetch('http://localhost:8000/api/anomalies/')
+        fetch('https://safety-backend-69dl.onrender.com/api/anomalies/')
             .then(res => res.json())
             .then(data => {
                 setAnomalies(data);
@@ -32,7 +32,7 @@ function Anomalies() {
     };
 
     const fetchExperts = () => {
-        fetch('http://localhost:8000/api/experts/')
+        fetch('https://safety-backend-69dl.onrender.com/api/anomalies/')
             .then(res => res.json())
             .then(data => setExperts(data))
             .catch(err => console.error('Error:', err));

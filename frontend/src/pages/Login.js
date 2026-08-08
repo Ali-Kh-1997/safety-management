@@ -14,11 +14,9 @@ function Login() {
         setLoading(true);
 
         try {
-            const response = await fetch('http://localhost:8000/api/login/', {
+            const response = await fetch('https://safety-backend-69dl.onrender.com/api/login/', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
+                headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ username, password })
             });
 

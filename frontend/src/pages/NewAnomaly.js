@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
@@ -34,7 +35,7 @@ function NewAnomaly() {
                 formData.append('attachment', form.attachment);
             }
 
-            const response = await fetch('http://localhost:8000/api/anomalies/create/', {
+            const response = await fetch('https://safety-backend-69dl.onrender.com/api/anomalies/create/', {
                 method: 'POST',
                 body: formData
             });

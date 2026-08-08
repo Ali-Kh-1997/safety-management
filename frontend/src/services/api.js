@@ -1,10 +1,7 @@
 import axios from 'axios';
 
-// آدرس بک‌اند خود را اینجا قرار دهید
-const API_URL = process.env.REACT_APP_API_URL || 'https://safety-backend-69dl.onrender.com';
-
 const api = axios.create({
-    baseURL: API_URL,
+    baseURL: 'https://safety-backend-69dl.onrender.com/api',
     headers: {
         'Content-Type': 'application/json',
     },

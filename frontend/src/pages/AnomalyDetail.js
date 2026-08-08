@@ -20,7 +20,7 @@ function AnomalyDetail() {
 
     const fetchAnomaly = () => {
         setLoading(true);
-        fetch(`http://localhost:8000/api/anomalies/${id}/`)
+        fetch(`https://safety-backend-69dl.onrender.com/api/anomalies/${id}/`)
             .then(res => res.json())
             .then(data => {
                 setAnomaly(data);
@@ -103,7 +103,7 @@ function AnomalyDetail() {
         formData.append('attachment', file);
 
         try {
-            const response = await fetch(`http://localhost:8000/api/anomalies/${id}/upload-image/`, {
+            const response = await fetch(`https://safety-backend-69dl.onrender.com/api/anomalies/${id}/`)/upload-image/`, {
                 method: 'POST',
                 body: formData
             });
