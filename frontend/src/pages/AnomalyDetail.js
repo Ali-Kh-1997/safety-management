@@ -6,21 +6,9 @@ function AnomalyDetail() {
     const navigate = useNavigate();
     const [anomaly, setAnomaly] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [user, setUser] = useState(null);
-    const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
-        const userData = localStorage.getItem('user');
-        if (userData) {
-            setUser(JSON.parse(userData));
-        }
-        
-        fetchAnomaly();
-    }, [id]);
-
-    const fetchAnomaly = () => {
-        setLoading(true);
-        fetch(`https://safety-backend-69dl.onrender.com/api/anomalies/${id}/`)
+        fetch('https://safety-backend-69dl.onrender.com/api/anomalies/${id}/')
             .then(res => res.json())
             .then(data => {
                 setAnomaly(data);
@@ -30,7 +18,7 @@ function AnomalyDetail() {
                 console.error('Error:', err);
                 setLoading(false);
             });
-    };
+    }, [id]);
 
     const getStatusColor = (status) => {
         const colors = {
@@ -68,63 +56,6 @@ function AnomalyDetail() {
         return labels[risk] || risk;
     };
 
-    // بررسی دسترسی برای آپلود عکس جدید
-    const canUploadNewImage = () => {
-        if (!user || !anomaly) return false;
-        if (user.role === 'admin') return true;
-        if (['safety_expert', 'health_expert', 'environment_expert'].includes(user.role)) {
-            return anomaly.assigned_to === user.username;
-        }
-        return false;
-    };
-
-    const handleUploadNewImage = async (e) => {
-        const file = e.target.files[0];
-        if (!file) {
-            alert('❌ لطفاً یک عکس انتخاب کنید!');
-            return;
-        }
-
-        // بررسی حجم فایل (حداکثر 5 مگابایت)
-        if (file.size > 5 * 1024 * 1024) {
-            alert('❌ حجم فایل نباید بیشتر از 5 مگابایت باشد!');
-            return;
-        }
-
-        // بررسی نوع فایل
-        if (!file.type.startsWith('image/')) {
-            alert('❌ فقط فایل‌های تصویری قابل قبول هستند!');
-            return;
-        }
-
-        setUploading(true);
-
-        const formData = new FormData();
-        formData.append('attachment', file);
-
-        try {
-            const response = await fetch(`https://safety-backend-69dl.onrender.com/api/anomalies/${id}/`)/upload-image/`, {
-                method: 'POST',
-                body: formData
-            });
-
-            const data = await response.json();
-            
-            if (response.ok) {
-                alert('✅ عکس با موفقیت آپلود شد!');
-                fetchAnomaly(); // رفرش اطلاعات
-            } else {
-                alert(data.message || '❌ خطا در آپلود عکس');
-            }
-        } catch (error) {
-            alert('❌ خطا در اتصال به سرور!');
-            console.error('Error:', error);
-        } finally {
-            setUploading(false);
-            e.target.value = ''; // reset input
-        }
-    };
-
     if (loading) return <p>⏳ در حال بارگذاری...</p>;
     if (!anomaly) return <p>❌ آنومالی یافت نشد!</p>;
 
@@ -147,7 +78,6 @@ function AnomalyDetail() {
                 </button>
             </div>
 
-            {/* اطلاعات اصلی */}
             <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', marginBottom: '20px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                 <h2 style={{ marginBottom: '15px' }}>{anomaly.title}</h2>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
@@ -173,28 +103,19 @@ function AnomalyDetail() {
                     {anomaly.closed_at && <div><strong>تاریخ بسته شدن:</strong> {anomaly.closed_at}</div>}
                 </div>
                 
-                {/* توضیحات - برای همه قابل مشاهده است */}
                 <div style={{ marginTop: '15px' }}>
                     <strong>📝 توضیحات:</strong>
-                    <p style={{ 
-                        marginTop: '5px', 
-                        lineHeight: '1.8',
-                        backgroundColor: '#f8f9fa',
-                        padding: '15px',
-                        borderRadius: '8px',
-                        border: '1px solid #e9ecef'
-                    }}>
+                    <p style={{ marginTop: '5px', lineHeight: '1.8', backgroundColor: '#f8f9fa', padding: '15px', borderRadius: '8px', border: '1px solid #e9ecef' }}>
                         {anomaly.description}
                     </p>
                 </div>
 
-                {/* عکس پیوست - برای همه قابل مشاهده است */}
-                <div style={{ marginTop: '15px' }}>
-                    <strong>📷 عکس پیوست:</strong>
-                    <br />
-                    {anomaly.attachment ? (
+                {anomaly.attachment && (
+                    <div style={{ marginTop: '15px' }}>
+                        <strong>📷 عکس پیوست:</strong>
+                        <br />
                         <img 
-                            src={`http://localhost:8000${anomaly.attachment}`} 
+                            src={`https://safety-backend-69dl.onrender.com${anomaly.attachment}`} 
                             alt="Anomaly" 
                             style={{ 
                                 maxWidth: '100%', 
@@ -204,55 +125,10 @@ function AnomalyDetail() {
                                 border: '1px solid #ddd',
                                 display: 'block'
                             }} 
-                            onError={(e) => {
-                                e.target.style.display = 'none';
-                                const parent = e.target.parentElement;
-                                const errorMsg = document.createElement('p');
-                                errorMsg.style.color = 'red';
-                                errorMsg.innerText = '❌ عکس بارگذاری نشد (مشکل در آدرس عکس)';
-                                parent.appendChild(errorMsg);
-                            }}
                         />
-                    ) : (
-                        <p style={{ color: '#666' }}>📭 هیچ عکسی برای این آنومالی ثبت نشده است.</p>
-                    )}
-                </div>
-
-                {/* آپلود عکس جدید - فقط کارشناس تخصیص داده شده */}
-                {canUploadNewImage() && anomaly.status !== 'closed' && (
-                    <div style={{ 
-                        marginTop: '15px', 
-                        padding: '15px',
-                        backgroundColor: '#e3f2fd',
-                        borderRadius: '8px',
-                        border: '1px solid #90caf9'
-                    }}>
-                        <strong>📤 آپلود عکس جدید (اصلاحیه):</strong>
-                        <br />
-                        <input
-                            type="file"
-                            accept="image/*"
-                            onChange={handleUploadNewImage}
-                            disabled={uploading}
-                            style={{
-                                marginTop: '10px',
-                                padding: '10px',
-                                border: '1px solid #ddd',
-                                borderRadius: '4px',
-                                width: '100%',
-                                cursor: uploading ? 'not-allowed' : 'pointer'
-                            }}
-                        />
-                        {uploading && <p style={{ fontSize: '12px', color: '#1976d2' }}>⏳ در حال آپلود...</p>}
-                        <p style={{ fontSize: '12px', color: '#666', marginTop: '5px' }}>
-                            ⚠️ با آپلود عکس جدید، عکس قبلی جایگزین می‌شود.
-                            <br />
-                            حجم فایل نباید بیشتر از 5 مگابایت باشد.
-                        </p>
                     </div>
                 )}
 
-                {/* یادداشت بسته شدن */}
                 {anomaly.closure_notes && (
                     <div style={{ 
                         marginTop: '15px', 
@@ -267,7 +143,6 @@ function AnomalyDetail() {
                 )}
             </div>
 
-            {/* گردش کار */}
             <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
                 <h3>⏳ گردش کار</h3>
                 <div style={{ position: 'relative', padding: '10px 0' }}>
