@@ -8,7 +8,8 @@ function AnomalyDetail() {
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch('https://safety-backend-69dl.onrender.com/api/anomalies/${id}/')
+        const apiUrl = 'https://safety-backend-69dl.onrender.com';
+        fetch(`${apiUrl}/api/anomalies/${id}/`)
             .then(res => res.json())
             .then(data => {
                 setAnomaly(data);
@@ -79,17 +80,12 @@ function AnomalyDetail() {
             </div>
 
             <div style={{ backgroundColor: 'white', padding: '20px', borderRadius: '8px', marginBottom: '20px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' }}>
-                <h2 style={{ marginBottom: '15px' }}>{anomaly.title}</h2>
+                <h2>{anomaly.title}</h2>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                     <div><strong>شماره:</strong> {anomaly.anomaly_number}</div>
                     <div>
                         <strong>وضعیت:</strong> 
-                        <span style={{ 
-                            backgroundColor: getStatusColor(anomaly.status), 
-                            padding: '4px 12px', 
-                            borderRadius: '12px',
-                            marginRight: '8px'
-                        }}>
+                        <span style={{ backgroundColor: getStatusColor(anomaly.status), padding: '4px 12px', borderRadius: '12px', marginRight: '8px' }}>
                             {getStatusLabel(anomaly.status)}
                         </span>
                     </div>
@@ -117,26 +113,13 @@ function AnomalyDetail() {
                         <img 
                             src={`https://safety-backend-69dl.onrender.com${anomaly.attachment}`} 
                             alt="Anomaly" 
-                            style={{ 
-                                maxWidth: '100%', 
-                                maxHeight: '400px', 
-                                marginTop: '10px',
-                                borderRadius: '8px',
-                                border: '1px solid #ddd',
-                                display: 'block'
-                            }} 
+                            style={{ maxWidth: '100%', maxHeight: '400px', marginTop: '10px', borderRadius: '8px', border: '1px solid #ddd', display: 'block' }} 
                         />
                     </div>
                 )}
 
                 {anomaly.closure_notes && (
-                    <div style={{ 
-                        marginTop: '15px', 
-                        backgroundColor: '#e8f5e9', 
-                        padding: '15px', 
-                        borderRadius: '8px',
-                        border: '1px solid #c8e6c9'
-                    }}>
+                    <div style={{ marginTop: '15px', backgroundColor: '#e8f5e9', padding: '15px', borderRadius: '8px', border: '1px solid #c8e6c9' }}>
                         <strong>📝 یادداشت بسته شدن:</strong>
                         <p style={{ marginTop: '5px' }}>{anomaly.closure_notes}</p>
                     </div>
@@ -177,13 +160,7 @@ function AnomalyDetail() {
                     )}
                     
                     {anomaly.status === 'closed' && (
-                        <div style={{ 
-                            marginTop: '15px', 
-                            padding: '15px', 
-                            backgroundColor: '#e8f5e9', 
-                            borderRadius: '8px',
-                            border: '1px solid #c8e6c9'
-                        }}>
+                        <div style={{ marginTop: '15px', padding: '15px', backgroundColor: '#e8f5e9', borderRadius: '8px', border: '1px solid #c8e6c9' }}>
                             <strong style={{ color: '#2e7d32' }}>✅ این آنومالی بسته شده است.</strong>
                         </div>
                     )}
