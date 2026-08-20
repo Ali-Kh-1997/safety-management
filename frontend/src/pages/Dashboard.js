@@ -1,176 +1,179 @@
 import React, { useState, useEffect } from 'react';
+import { Chart as ChartJS, ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement } from 'chart.js';
+import { Bar, Doughnut, Line } from 'react-chartjs-2';
+import { HomeIcon, ExclamationTriangleIcon, CheckCircleIcon, ClockIcon } from '@heroicons/react/24/outline';
+
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement, PointElement, LineElement);
 
 function Dashboard() {
     const [stats, setStats] = useState({
         total: 0,
         pending: 0,
-        inProgress: 0,
         resolved: 0,
         closed: 0,
         critical: 0
     });
-    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        fetch('http://localhost:8000/api/anomalies/')
+        fetch('https://safety-backend-69dl.onrender.com/api/anomalies/')
             .then(res => res.json())
             .then(data => {
                 const total = data.length;
                 const pending = data.filter(a => a.status === 'new' || a.status === 'approved').length;
-                const inProgress = data.filter(a => a.status === 'assigned' || a.status === 'in_progress').length;
                 const resolved = data.filter(a => a.status === 'resolved').length;
                 const closed = data.filter(a => a.status === 'closed').length;
                 const critical = data.filter(a => a.risk_level === 'critical').length;
-
-                setStats({
-                    total,
-                    pending,
-                    inProgress,
-                    resolved,
-                    closed,
-                    critical
-                });
-                setLoading(false);
+                setStats({ total, pending, resolved, closed, critical });
             })
-            .catch(err => {
-                console.error('Error:', err);
-                setLoading(false);
-            });
+            .catch(err => console.error('Error:', err));
     }, []);
 
+    // داده‌های نمودار
+    const barData = {
+        labels: ['فروردین', 'اردیبهشت', 'خرداد', 'تیر', 'مرداد', 'شهریور'],
+        datasets: [
+            {
+                label: 'حوادث ثبت شده',
+                data: [4, 7, 5, 9, 6, 8],
+                backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                borderColor: 'rgba(59, 130, 246, 1)',
+                borderWidth: 1,
+            }
+        ]
+    };
+
+    const doughnutData = {
+        labels: ['جدید', 'در حال بررسی', 'رفع شده', 'بسته شده'],
+        datasets: [
+            {
+                data: [stats.pending, 3, stats.resolved, stats.closed],
+                backgroundColor: ['#f59e0b', '#3b82f6', '#10b981', '#6b7280'],
+                borderWidth: 2,
+            }
+        ]
+    };
+
+    const lineData = {
+        labels: ['هفته ۱', 'هفته ۲', 'هفته ۳', 'هفته ۴'],
+        datasets: [
+            {
+                label: 'روند حوادث',
+                data: [3, 5, 2, 4],
+                borderColor: '#ef4444',
+                backgroundColor: 'rgba(239, 68, 68, 0.1)',
+                tension: 0.3,
+                fill: true,
+            }
+        ]
+    };
+
+    const StatCard = ({ title, value, icon: Icon, color, subtitle }) => (
+        <div className="bg-white rounded-xl shadow-sm p-6 border-r-4 border-[#1a56db] hover:shadow-md transition-shadow">
+            <div className="flex items-center justify-between">
+                <div>
+                    <p className="text-sm text-gray-500">{title}</p>
+                    <p className="text-2xl font-bold text-gray-800">{value}</p>
+                    {subtitle && <p className="text-xs text-gray-400 mt-1">{subtitle}</p>}
+                </div>
+                <div className={`p-3 rounded-full bg-${color}-100`}>
+                    <Icon className={`w-6 h-6 text-${color}-600`} />
+                </div>
+            </div>
+        </div>
+    );
+
     return (
-        <div>
-            <h1 style={{ marginBottom: '20px' }}>📊 داشبورد مدیریت ایمنی</h1>
-            
-            {loading ? (
-                <p>⏳ در حال بارگذاری...</p>
-            ) : (
-                <>
-                    <div style={{ 
-                        display: 'grid', 
-                        gridTemplateColumns: 'repeat(4, 1fr)', 
-                        gap: '20px', 
-                        marginBottom: '30px' 
-                    }}>
-                        <div style={{ 
-                            backgroundColor: '#e3f2fd', 
-                            padding: '20px', 
-                            borderRadius: '8px',
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                        }}>
-                            <h3 style={{ margin: 0, color: '#1565c0' }}>📋 کل آنومالی‌ها</h3>
-                            <p style={{ fontSize: '32px', fontWeight: 'bold', margin: '10px 0 0 0' }}>
-                                {stats.total}
-                            </p>
-                        </div>
+        <div className="p-6 bg-gray-50 min-h-screen">
+            {/* هدر */}
+            <div className="mb-8">
+                <h1 className="text-2xl font-bold text-gray-800">📊 داشبورد مدیریت HSE</h1>
+                <p className="text-gray-500 text-sm">خلاصه وضعیت ایمنی و حوادث</p>
+            </div>
 
-                        <div style={{ 
-                            backgroundColor: '#fff3e0', 
-                            padding: '20px', 
-                            borderRadius: '8px',
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                        }}>
-                            <h3 style={{ margin: 0, color: '#e65100' }}>⏳ در انتظار بررسی</h3>
-                            <p style={{ fontSize: '32px', fontWeight: 'bold', margin: '10px 0 0 0' }}>
-                                {stats.pending}
-                            </p>
-                        </div>
+            {/* کارت‌های آماری */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+                <StatCard 
+                    title="کل حوادث" 
+                    value={stats.total} 
+                    icon={HomeIcon} 
+                    color="blue"
+                    subtitle="از ابتدای سال"
+                />
+                <StatCard 
+                    title="در انتظار بررسی" 
+                    value={stats.pending} 
+                    icon={ClockIcon} 
+                    color="yellow"
+                    subtitle="نیاز به اقدام فوری"
+                />
+                <StatCard 
+                    title="بحرانی" 
+                    value={stats.critical} 
+                    icon={ExclamationTriangleIcon} 
+                    color="red"
+                    subtitle="بالاترین اولویت"
+                />
+                <StatCard 
+                    title="بسته شده" 
+                    value={stats.closed} 
+                    icon={CheckCircleIcon} 
+                    color="green"
+                    subtitle="اقدامات انجام شده"
+                />
+            </div>
 
-                        <div style={{ 
-                            backgroundColor: '#fce4ec', 
-                            padding: '20px', 
-                            borderRadius: '8px',
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                        }}>
-                            <h3 style={{ margin: 0, color: '#c62828' }}>🔴 بحرانی</h3>
-                            <p style={{ fontSize: '32px', fontWeight: 'bold', margin: '10px 0 0 0' }}>
-                                {stats.critical}
-                            </p>
-                        </div>
+            {/* نمودارها */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
+                {/* نمودار میله‌ای */}
+                <div className="bg-white p-4 rounded-xl shadow-sm">
+                    <h3 className="text-sm font-semibold text-gray-700 mb-4">📈 روند حوادث ماهانه</h3>
+                    <Bar data={barData} options={{ responsive: true, plugins: { legend: { display: false } } }} />
+                </div>
 
-                        <div style={{ 
-                            backgroundColor: '#e8f5e9', 
-                            padding: '20px', 
-                            borderRadius: '8px',
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                        }}>
-                            <h3 style={{ margin: 0, color: '#2e7d32' }}>✅ بسته شده</h3>
-                            <p style={{ fontSize: '32px', fontWeight: 'bold', margin: '10px 0 0 0' }}>
-                                {stats.closed}
-                            </p>
+                {/* نمودار دایره‌ای */}
+                <div className="bg-white p-4 rounded-xl shadow-sm">
+                    <h3 className="text-sm font-semibold text-gray-700 mb-4">🔄 وضعیت حوادث</h3>
+                    <div className="flex justify-center">
+                        <div className="w-48 h-48">
+                            <Doughnut data={doughnutData} options={{ responsive: true, plugins: { legend: { position: 'bottom' } } }} />
                         </div>
                     </div>
+                </div>
 
-                    <div style={{ 
-                        display: 'grid', 
-                        gridTemplateColumns: 'repeat(2, 1fr)', 
-                        gap: '20px' 
-                    }}>
-                        <div style={{ 
-                            backgroundColor: 'white', 
-                            padding: '20px', 
-                            borderRadius: '8px',
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                        }}>
-                            <h3>📈 وضعیت آنومالی‌ها</h3>
-                            <ul style={{ listStyle: 'none', padding: 0 }}>
-                                <li style={{ padding: '8px 0', borderBottom: '1px solid #eee' }}>
-                                    <span>🟡 در حال انجام: </span>
-                                    <strong>{stats.inProgress}</strong>
-                                </li>
-                                <li style={{ padding: '8px 0', borderBottom: '1px solid #eee' }}>
-                                    <span>🟢 رفع شده: </span>
-                                    <strong>{stats.resolved}</strong>
-                                </li>
-                                <li style={{ padding: '8px 0' }}>
-                                    <span>✅ بسته شده: </span>
-                                    <strong>{stats.closed}</strong>
-                                </li>
-                            </ul>
-                        </div>
+                {/* نمودار خطی */}
+                <div className="bg-white p-4 rounded-xl shadow-sm">
+                    <h3 className="text-sm font-semibold text-gray-700 mb-4">📉 روند هفتگی</h3>
+                    <Line data={lineData} options={{ responsive: true, plugins: { legend: { display: false } } }} />
+                </div>
+            </div>
 
-                        <div style={{ 
-                            backgroundColor: 'white', 
-                            padding: '20px', 
-                            borderRadius: '8px',
-                            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                        }}>
-                            <h3>⚡ اقدامات سریع</h3>
-                            <button
-                                onClick={() => window.location.href = '/anomalies/new'}
-                                style={{
-                                    width: '100%',
-                                    padding: '12px',
-                                    backgroundColor: '#1976d2',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    fontSize: '16px',
-                                    marginBottom: '10px'
-                                }}
-                            >
-                                ➕ ثبت آنومالی جدید
-                            </button>
-                            <button
-                                onClick={() => window.location.href = '/anomalies'}
-                                style={{
-                                    width: '100%',
-                                    padding: '12px',
-                                    backgroundColor: '#666',
-                                    color: 'white',
-                                    border: 'none',
-                                    borderRadius: '4px',
-                                    cursor: 'pointer',
-                                    fontSize: '16px'
-                                }}
-                            >
-                                📋 مشاهده همه آنومالی‌ها
-                            </button>
+            {/* لیست آخرین حوادث */}
+            <div className="mt-8 bg-white rounded-xl shadow-sm p-6">
+                <h3 className="text-sm font-semibold text-gray-700 mb-4">🔔 آخرین حوادث ثبت شده</h3>
+                <div className="space-y-3">
+                    <div className="flex items-center justify-between border-b pb-3">
+                        <div>
+                            <p className="font-medium text-gray-800">نشتی گاز در واحد الف</p>
+                            <p className="text-sm text-gray-500">ثبت شده توسط: احمدی - ۱۴۰۴/۰۵/۲۰</p>
                         </div>
+                        <span className="px-3 py-1 text-xs font-semibold text-red-600 bg-red-100 rounded-full">بحرانی</span>
                     </div>
-                </>
-            )}
+                    <div className="flex items-center justify-between border-b pb-3">
+                        <div>
+                            <p className="font-medium text-gray-800">سقوط کارگر از ارتفاع</p>
+                            <p className="text-sm text-gray-500">ثبت شده توسط: کریمی - ۱۴۰۴/۰۵/۱۹</p>
+                        </div>
+                        <span className="px-3 py-1 text-xs font-semibold text-yellow-600 bg-yellow-100 rounded-full">در انتظار</span>
+                    </div>
+                    <div className="flex items-center justify-between">
+                        <div>
+                            <p className="font-medium text-gray-800">خرابی کپسول آتش‌نشانی</p>
+                            <p className="text-sm text-gray-500">ثبت شده توسط: محمدی - ۱۴۰۴/۰۵/۱۸</p>
+                        </div>
+                        <span className="px-3 py-1 text-xs font-semibold text-green-600 bg-green-100 rounded-full">بسته شده</span>
+                    </div>
+                </div>
+            </div>
         </div>
     );
 }
